@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisasi ERD Database - Payroll System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid.js CDN untuk merender ERD secara dinamis -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181825;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #45475a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #585b70;
+        }
+
+        /* Canvas Box Styling */
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 680px;
+            background-color: #181825;
+            border: 1px solid #313244;
+            border-radius: 8px;
+            overflow: auto; /* Memungkinkan drag/scroll manual */
+        }
+
+        #zoom-container {
+            width: fit-content;
+            height: fit-content;
+            min-width: 100%;
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: 0 0; /* Transformasi zoom dari kiri atas */
+            transition: transform 0.15s ease-out;
+            padding: 40px;
+        }
+
+        .mermaid {
+            background: transparent !important;
+            width: 100%;
+        }
+
+        .mermaid svg {
+            background: transparent !important;
+            height: auto !important;
+        }
+
+        /* Teks lebih kontras & tebal untuk anak IT */
+        .mermaid text {
+            font-family: 'Consolas', 'Courier New', monospace !important;
+            font-size: 15px !important;
+            font-weight: bold !important;
+            fill: #cdd6f4 !important;
+        }
+        .mermaid rect {
+            fill: #252538 !important;
+            stroke: #cba6f7 !important;
+            stroke-width: 2px !important;
+        }
+        .mermaid .edgePath .path {
+            stroke: #a6adc8 !important;
+            stroke-width: 2px !important;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-[1800px] mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center bg-[#252538] border border-[#45475a] p-4 rounded-xl mb-6 shadow-lg">
+            <div>
+                <h1 class="text-xl font-bold text-[#f5c2e7]">📊 Database Entity Relationship Diagram (ERD)</h1>
+                <p class="text-xs text-[#a6adc8] mt-0.5">Visualisasi Skema Relasi Database Payroll System - Gunakan Tombol Zoom untuk memperbesar teks</p>
+            </div>
+            <div>
+                <span class="bg-[#313244] text-[#a6e3a1] text-xs font-semibold px-3 py-1.5 rounded-full border border-[#45475a]">
+                    Render Mode: Safe Engine
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <!-- Sidebar: Kamus Data & Penjelasan -->
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                <!-- Panduan Skema Relasi -->
+                <div class="bg-[#252538] border border-[#45475a] p-4 rounded-xl shadow-lg">
+                    <h3 class="text-sm font-bold text-[#cba6f7] border-b border-[#45475a] pb-2 mb-3">🗝️ Legenda Relasi</h3>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 text-center font-mono text-[10px] text-[#f9e2af] bg-[#1e1e2e] px-1 py-0.5 rounded border border-[#45475a]">||--o{</span>
+                            <span class="text-[#cdd6f4]">One to Many</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 text-center font-mono text-[10px] text-[#f9e2af] bg-[#1e1e2e] px-1 py-0.5 rounded border border-[#45475a]">||--o|</span>
+                            <span class="text-[#cdd6f4]">One to One</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 text-center font-mono text-[10px] text-[#f38ba8] bg-[#1e1e2e] px-1.5 py-0.5 rounded font-bold">PK</span>
+                            <span class="text-[#cdd6f4]">Primary Key</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 text-center font-mono text-[10px] text-[#89b4fa] bg-[#1e1e2e] px-1.5 py-0.5 rounded font-bold">FK</span>
+                            <span class="text-[#cdd6f4]">Foreign Key</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daftar Tabel -->
+                <div class="bg-[#252538] border border-[#45475a] p-4 rounded-xl shadow-lg">
+                    <h3 class="text-sm font-bold text-[#cba6f7] border-b border-[#45475a] pb-2 mb-3">🗂️ Daftar Tabel</h3>
+                    <div class="flex flex-col gap-1.5 max-h-[400px] overflow-y-auto pr-1">
+                        <button onclick="highlightTable('master_karyawan')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            master_karyawan
+                        </button>
+                        <button onclick="highlightTable('master_jabatan')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            master_jabatan
+                        </button>
+                        <button onclick="highlightTable('master_user')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            master_user
+                        </button>
+                        <button onclick="highlightTable('log_absensi_harian')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            log_absensi_harian
+                        </button>
+                        <button onclick="highlightTable('pengajuan_lembur')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            pengajuan_lembur
+                        </button>
+                        <button onclick="highlightTable('rekap_absensi')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            rekap_absensi
+                        </button>
+                        <button onclick="highlightTable('slip_gaji_h')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            slip_gaji_h (Header)
+                        </button>
+                        <button onclick="highlightTable('slip_gaji_d')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            slip_gaji_d (Detail)
+                        </button>
+                        <button onclick="highlightTable('master_komponen')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            master_komponen
+                        </button>
+                        <button onclick="highlightTable('master_konfigurasi')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            master_konfigurasi
+                        </button>
+                        <button onclick="highlightTable('log_perubahan_gaji')" class="text-left w-full p-2 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-[#45475a] text-xs font-semibold text-[#89b4fa]">
+                            log_perubahan_gaji
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Utama: Diagram ERD -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <!-- Toolbar Control -->
+                <div class="bg-[#252538] border border-[#45475a] p-3 rounded-xl shadow-lg flex justify-between items-center">
+                    <span class="text-xs text-[#a6adc8]">Navigasi Zoom Diagram:</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="zoom(0.1)" class="px-3 py-1 bg-[#313244] text-[#cdd6f4] text-xs rounded font-bold hover:bg-[#45475a] transition">Zoom In (+)</button>
+                        <span id="zoom-indicator" class="text-xs font-bold text-[#f9e2af]">100%</span>
+                        <button onclick="zoom(-0.1)" class="px-3 py-1 bg-[#313244] text-[#cdd6f4] text-xs rounded font-bold hover:bg-[#45475a] transition">Zoom Out (-)</button>
+                        <button onclick="resetZoom()" class="px-3 py-1 bg-[#b4befe] text-[#11111b] text-xs rounded font-bold hover:bg-[#a6adc8] transition">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div id="canvas-wrapper">
+                    <div id="zoom-container">
+                        <div class="mermaid">
+erDiagram
+    master_jabatan {
+        int id_jabatan PK
+        varchar nama_jabatan
+        decimal gaji_pokok
+        decimal tunjangan_jabatan
+    }
+
+    master_karyawan {
+        int id_karyawan PK
+        varchar nik
+        varchar nama_karyawan
+        int id_jabatan FK
+        tinyint status_aktif
+        date tanggal_masuk
+    }
+
+    master_user {
+        int id_user PK
+        varchar username
+        varchar password_hash
+        varchar role
+        int id_karyawan FK
+    }
+
+    log_absensi_harian {
+        int id_absensi PK
+        int id_karyawan FK
+        date tanggal
+        time jam_masuk
+        varchar status_kehadiran
+        varchar ip_address
+        datetime waktu_server_masuk
+    }
+
+    pengajuan_lembur {
+        int id_lembur PK
+        int id_karyawan FK
+        date tanggal_lembur
+        int durasi_jam
+        varchar keterangan
+        varchar status_approval
+    }
+
+    rekap_absensi {
+        int id_rekap PK
+        int id_karyawan FK
+        int bulan
+        int tahun
+        int jumlah_hadir
+        int jumlah_alpa
+        int total_jam_lembur
+        int total_menit_terlambat
+    }
+
+    slip_gaji_h {
+        int id_slip_h PK
+        int id_karyawan FK
+        int bulan
+        int tahun
+        decimal total_pendapatan
+        decimal total_potongan
+        decimal gaji_bersih
+        varchar status_bayar
+        datetime tanggal_generate
+        datetime tanggal_dibayar
+    }
+
+    slip_gaji_d {
+        int id_slip_d PK
+        int id_slip_h FK
+        int id_komponen FK
+        varchar nama_komponen
+        varchar jenis_komponen
+        decimal nominal
+    }
+
+    master_komponen {
+        int id_komponen PK
+        varchar nama_komponen
+        varchar jenis_komponen
+        decimal nilai_default
+    }
+
+    master_konfigurasi {
+        int id_config PK
+        varchar nama_parameter
+        decimal nilai_numeric
+        varchar keterangan
+    }
+
+    log_perubahan_gaji {
+        int id_log PK
+        int id_jabatan
+        varchar nama_jabatan
+        decimal gaji_pokok_lama
+        decimal gaji_pokok_baru
+        varchar user_pemasok
+        datetime waktu_perubahan
+    }
+
+    master_jabatan ||--o{ master_karyawan : "diisi_oleh"
+    master_karyawan ||--o| master_user : "memiliki_akun"
+    master_karyawan ||--o{ log_absensi_harian : "mencatat_kehadiran"
+    master_karyawan ||--o{ pengajuan_lembur : "mengajukan_lembur"
+    master_karyawan ||--o{ rekap_absensi : "memiliki_rekap"
+    master_karyawan ||--o{ slip_gaji_h : "menerima_slip"
+    slip_gaji_h ||--|{ slip_gaji_d : "merinci_komponen"
+    master_komponen ||--o{ slip_gaji_d : "sebagai_referensi"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script navigasi & inisialisasi -->
+    <script>
+        // Inisialisasi Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                background: '#1e1e2e',
+                primaryColor: '#cba6f7',
+                primaryTextColor: '#cdd6f4',
+                lineColor: '#a6adc8',
+                fontSize: '15px'
+            }
+        });
+
+        // Kontrol Zoom manual berbasis CSS transform (Jaminan 100% aman & rendering lancar)
+        let currentScale = 1.0;
+        const zoomContainer = document.getElementById('zoom-container');
+        const zoomIndicator = document.getElementById('zoom-indicator');
+
+        function zoom(amount) {
+            currentScale = Math.max(0.4, Math.min(3.0, currentScale + amount));
+            zoomContainer.style.transform = `scale(${currentScale})`;
+            zoomIndicator.textContent = `${Math.round(currentScale * 100)}%`;
+        }
+
+        function resetZoom() {
+            currentScale = 1.0;
+            zoomContainer.style.transform = `scale(1.0)`;
+            zoomIndicator.textContent = "100%";
+        }
+
+        // Menyoroti tabel yang diklik
+        function highlightTable(tableName) {
+            const entities = document.querySelectorAll('.mermaid .entity');
+            entities.forEach(entity => {
+                const textNode = entity.querySelector('text');
+                if (textNode && textNode.textContent.trim().toLowerCase().includes(tableName.toLowerCase())) {
+                    // Highlight target tabel (warna pink tebal)
+                    entity.querySelector('rect').setAttribute('style', 'fill: #313244 !important; stroke: #f5c2e7 !important; stroke-width: 4px !important;');
+
+                    // Otomatis scroll wrapper ke elemen target agar terpusat
+                    entity.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                } else {
+                    // Kembalikan tabel lain ke style normal
+                    const rect = entity.querySelector('rect');
+                    if (rect) {
+                        rect.setAttribute('style', 'fill: #252538 !important; stroke: #cba6f7 !important; stroke-width: 2px !important;');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
